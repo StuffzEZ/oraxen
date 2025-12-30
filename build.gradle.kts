@@ -17,8 +17,7 @@ plugins {
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
 
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
-val isCI = System.getenv("CI") != null
-val SUPPORTED_VERSIONS: List<NMSVersion> = listOfNotNull(
+val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
     "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
@@ -29,16 +28,7 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOfNotNull(
     "v1_21_R4" toNms "1.21.5-R0.1-SNAPSHOT",
     "v1_21_R5" toNms "1.21.8-R0.1-SNAPSHOT", // also for 1.21.7
     "v1_21_R6_old" toNms "1.21.10-R0.1-SNAPSHOT", // 1.21.9 and 1.21.10 (uses ResourceLocation)
-    "v1_21_R6" toNms "1.21.11-R0.1-SNAPSHOT", // 1.21.11 Paper (Mojang-mapped)
-    // Skip Spigot modules in CI - requires BuildTools to install Spigot artifacts to local Maven
-    if (!isCI) "v1_20_R4_spigot" toNms "1.20.6-R0.1-SNAPSHOT" else null,
-    if (!isCI) "v1_21_R1_spigot" toNms "1.21.1-R0.1-SNAPSHOT" else null,
-    if (!isCI) "v1_21_R2_spigot" toNms "1.21.3-R0.1-SNAPSHOT" else null,
-    if (!isCI) "v1_21_R3_spigot" toNms "1.21.4-R0.1-SNAPSHOT" else null,
-    if (!isCI) "v1_21_R4_spigot" toNms "1.21.5-R0.1-SNAPSHOT" else null,
-    if (!isCI) "v1_21_R5_spigot" toNms "1.21.8-R0.1-SNAPSHOT" else null,
-    if (!isCI) "v1_21_R6_old_spigot" toNms "1.21.10-R0.1-SNAPSHOT" else null,
-    if (!isCI) "v1_21_R6_spigot" toNms "1.21.11-R0.1-SNAPSHOT" else null
+    "v1_21_R6" toNms "1.21.11-R0.1-SNAPSHOT" // 1.21.11 (uses Identifier, needs reflection helper)
 )
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
@@ -82,16 +72,10 @@ allprojects {
             }
         }
         maven("https://repo.oraxen.com/releases") {
-            content {
-                includeGroup("io.th0rgal") // protectionlib
-                includeGroup("md.thomas.hopper") // hopper
-            }
+            content { includeGroup("io.th0rgal") } // protectionlib
         }
         maven("https://repo.oraxen.com/snapshots") {
-            content {
-                includeGroup("io.th0rgal")
-                includeGroup("md.thomas.hopper")
-            }
+            content { includeGroup("io.th0rgal") }
         }
         maven("https://repo.auxilor.io/repository/maven-public/") {
             content { includeGroup("com.willfp") } // EcoItems, eco, libreforge
@@ -173,7 +157,6 @@ tasks {
     runServer {
         downloadPlugins {
             hangar("ProtocolLib", "5.4.0")
-            hangar("CommandAPI", "11.1.0")
         }
         minecraftVersion("1.21.11")
         jvmArgs("-Dcom.mojang.eula.agree=true")
@@ -220,9 +203,7 @@ tasks {
                             "os.version"
                         )
                     }",
-                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean(),
-                    // Tell Paper not to remap this plugin - v1_21_R6 module uses Mojang mappings
-                    "paperweight-mappings-namespace" to "mojang"
+                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
                 )
             )
         }
@@ -246,7 +227,6 @@ bukkit {
     softDepend = listOf(
         "CommandAPI",
         "ProtocolLib",
-        "packetevents",
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
         "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
         "NBTAPI", "ModelEngine", "ViaBackwards", "HuskClaims", "HuskTowns", "BentoBox", "Skript"

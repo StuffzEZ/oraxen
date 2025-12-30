@@ -144,7 +144,7 @@ public class HudManager {
             return;
         }
         if (huds.isEmpty()) {
-            Logs.logInfo("No HUDs loaded, skipping task registration");
+            Logs.logWarning("[HUD] No HUDs loaded, skipping task registration");
             return;
         }
 

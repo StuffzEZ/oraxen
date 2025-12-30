@@ -29,11 +29,11 @@ public class PackSlicer extends Slicer {
     }
 
     public static void slicePackFiles() {
-        if (Settings.DEBUG.toBool()) Logs.logInfo("Slicing gui-textures to 1.20.2-format...");
+        Logs.logInfo("Slicing gui-textures to 1.20.2-format...");
         try {
             new PackSlicer(packFolder).process(INPUTS);
             if (assetsFolder.toFile().exists()) new PackSlicer(assetsFolder).process(INPUTS);
-            if (Settings.DEBUG.toBool()) Logs.logSuccess("Successfully sliced gui-textures for 1.20.2");
+            Logs.logSuccess("Successfully sliced gui-textures for 1.20.2");
         } catch (Exception e) {
             Logs.logWarning("Failed to properly slice textures for 1.20.2");
             if (Settings.DEBUG.toBool()) e.printStackTrace();

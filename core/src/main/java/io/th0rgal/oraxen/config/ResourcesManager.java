@@ -2,9 +2,9 @@ package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.ReflectionUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -14,14 +14,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
-import java.util.Enumeration;
 import java.util.Map.Entry;
-import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 public class ResourcesManager {
 
@@ -63,7 +60,22 @@ public class ResourcesManager {
     }
 
     public void extractConfigsInFolder(String folder, String fileExtension) {
-        browseJar(entry -> extractFileAccordingToExtension(entry, folder, fileExtension));
+        ZipInputStream zip = browse();
+        try {
+            extractConfigsInFolder(zip, folder, fileExtension);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void extractConfigsInFolder(ZipInputStream zip, String folder, String fileExtension) throws IOException {
+        ZipEntry entry = zip.getNextEntry();
+        while (entry != null) {
+            extractFileAccordingToExtension(entry, folder, fileExtension);
+            entry = zip.getNextEntry();
+        }
+        zip.closeEntry();
+        zip.close();
     }
 
     public void extractFileIfTrue(ZipEntry entry, boolean isSuitable) {
@@ -120,26 +132,11 @@ public class ResourcesManager {
         extractFileIfTrue(entry, isSuitable);
     }
 
-    /**
-     * Browse all entries in the plugin JAR file and apply a consumer to each entry.
-     * Uses ZipFile instead of ZipInputStream to avoid issues with malformed ZIP entries
-     * that have EXT descriptors with STORED compression method.
-     *
-     * @param entryConsumer consumer to apply to each ZIP entry
-     */
-    public static void browseJar(Consumer<ZipEntry> entryConsumer) {
-        try {
-            File jarFile = new File(OraxenPlugin.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            try (ZipFile zip = new ZipFile(jarFile)) {
-                Enumeration<? extends ZipEntry> entries = zip.entries();
-                while (entries.hasMoreElements()) {
-                    entryConsumer.accept(entries.nextElement());
-                }
-            }
-        } catch (URISyntaxException | IOException e) {
-            Logs.logError("Failed to browse plugin JAR file");
-            e.printStackTrace();
-        }
+    public static ZipInputStream browse() {
+        return ReflectionUtils.getJarStream(OraxenPlugin.class).orElseThrow(() -> {
+            Message.ZIP_BROWSE_ERROR.log();
+            return new RuntimeException("OraxenResources not found!");
+        });
     }
 
 }

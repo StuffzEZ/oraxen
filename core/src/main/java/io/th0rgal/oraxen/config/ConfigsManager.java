@@ -53,14 +53,12 @@ public class ConfigsManager {
     private final YamlConfiguration defaultSound;
     private final YamlConfiguration defaultLanguage;
     private final YamlConfiguration defaultHud;
-    private final YamlConfiguration defaultTextEffects;
     private YamlConfiguration mechanics;
     private YamlConfiguration settings;
     private YamlConfiguration font;
     private YamlConfiguration sound;
     private YamlConfiguration language;
     private YamlConfiguration hud;
-    private YamlConfiguration textEffects;
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
@@ -74,7 +72,6 @@ public class ConfigsManager {
         defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
-        defaultTextEffects = extractDefault("text_effects.yml");
     }
 
     public YamlConfiguration getMechanics() {
@@ -105,14 +102,6 @@ public class ConfigsManager {
         return sound != null ? sound : defaultSound;
     }
 
-    public YamlConfiguration getTextEffects() {
-        return textEffects != null ? textEffects : defaultTextEffects;
-    }
-
-    public File getTextEffectsFile() {
-        return new File(plugin.getDataFolder(), "text_effects.yml");
-    }
-
     public File getSchematicsFolder() {
         return schematicsFolder;
     }
@@ -138,7 +127,6 @@ public class ConfigsManager {
         font = validate(tempManager, "font.yml", defaultFont);
         hud = validate(tempManager, "hud.yml", defaultHud);
         sound = validate(tempManager, "sound.yml", defaultSound);
-        textEffects = validate(tempManager, "text_effects.yml", defaultTextEffects);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
         String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";

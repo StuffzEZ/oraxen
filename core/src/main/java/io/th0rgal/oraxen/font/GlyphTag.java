@@ -278,8 +278,8 @@ public class GlyphTag {
 
     /**
      * Handles rendering of animated glyphs.
-     * Animated glyphs use a magic color for shader detection. The shader hides
-     * all frames except the one matching the current time.
+     * Animated glyphs use a magic color for shader detection. The shader cycles
+     * through frames via UV remapping, so we only output the first frame character.
      */
     private static Tag handleAnimatedGlyph(Player player, AnimatedGlyph animGlyph, ArgumentQueue args) {
         // Check permission
@@ -292,9 +292,12 @@ public class GlyphTag {
             return Tag.selfClosingInserting(Component.text(animGlyph.getGlyphTag()));
         }
 
-        // Build the animated component with all frame characters interleaved with
-        // reset spacers so the shader can show only the current frame.
-        Component animComponent = animGlyph.getGlyphComponent();
+        // Build the animated component with the first frame character and magic color.
+        // The shader handles frame cycling via UV remapping based on game time,
+        // so we only need to output a single character (not all frame characters).
+        Component animComponent = Component.text(animGlyph.getCharacter())
+                .font(animGlyph.getAnimationFont())
+                .color(animGlyph.getMagicColor());
 
         return Tag.selfClosingInserting(animComponent);
     }
